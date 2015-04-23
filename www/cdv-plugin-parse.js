@@ -57,6 +57,28 @@ var parsePlugin = {
             'unsubscribe',
             [ channel ]
         );
+    },
+
+    // logs in using the sessionToken and adds the user to the current Installation
+    setUserWithToken: function(sessionToken, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            'ParsePlugin',
+            'setUserWithToken',
+            [ sessionToken ]
+        );
+    },
+
+    // removes the user from the current Installation
+    unsetUser: function(successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            'ParsePlugin',
+            'unsetUser',
+            []
+        );
     }
 };
 module.exports = parsePlugin;

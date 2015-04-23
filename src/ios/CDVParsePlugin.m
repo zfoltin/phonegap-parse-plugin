@@ -4,6 +4,8 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
+static NSString * const USER_PROPERTY = @"user";
+
 @implementation CDVParsePlugin
 
 - (void)initialize: (CDVInvokedUrlCommand*)command
@@ -81,6 +83,38 @@
     [currentInstallation removeObject:channel forKey:@"channels"];
     [currentInstallation saveInBackground];
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (void)setUserWithToken: (CDVInvokedUrlCommand *)command
+{
+    NSString* sessionToken = [command.arguments objectAtIndex:0];
+    
+    [PFUser becomeInBackground:sessionToken block:^(PFUser *user, NSError *error) {
+        CDVPluginResult* pluginResult = nil;
+        
+        if (error == nil) {
+            PFInstallation* installation = [PFInstallation currentInstallation];
+            installation[USER_PROPERTY] = user;
+            [installation saveInBackground];
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        } else {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
+        }
+        
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    }];
+}
+
+- (void)unsetUser: (CDVInvokedUrlCommand *)command
+{
+    CDVPluginResult* pluginResult = nil;
+    PFInstallation* installation = [PFInstallation currentInstallation];
+    [installation removeObjectForKey:USER_PROPERTY];
+    [installation saveInBackground];
+    
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];   
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
