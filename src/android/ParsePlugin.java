@@ -135,7 +135,7 @@ public class ParsePlugin extends CordovaPlugin {
                         if (user != null && e == null) {
                             ParseInstallation installation = ParseInstallation.getCurrentInstallation();
                             installation.put(USER_PROPERTY, user);
-                            installation.saveInBackground();
+                            installation.save();
                             callbackContext.success();
                         } else {
                             String error = "Cannot become user in background. ";
@@ -156,7 +156,7 @@ public class ParsePlugin extends CordovaPlugin {
             public void run() {
                 ParseInstallation installation = ParseInstallation.getCurrentInstallation();
                 installation.remove(USER_PROPERTY);
-                installation.saveInBackground();
+                installation.save();
                 callbackContext.success();
             }
         });
