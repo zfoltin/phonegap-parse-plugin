@@ -33,9 +33,14 @@ static NSString * const USER_PROPERTY = @"user";
         }
 
         PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-        [currentInstallation save];
-        
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        NSError *error = nil;
+        [currentInstallation save:&error];
+        if (error != nil) {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
+        } else {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        }
+
         [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
     }];
 }
