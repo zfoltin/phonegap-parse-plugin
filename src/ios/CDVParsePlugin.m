@@ -4,19 +4,40 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-static NSString * const USER_PROPERTY = @"user";
+static NSString * ecb = nil;
+static NSDictionary * launchNotification = nil;
+static NSString * const PPAppId = @"appId";
+static NSString * const PPClientKey = @"clientKey";
 
 @implementation CDVParsePlugin
+
+- (void)registerCallback: (CDVInvokedUrlCommand*)command
+{
+    ecb = [command.arguments objectAtIndex:0];
+
+    // If the app was inactive and launched from a notification, launchNotification stores the notification temporarily.
+    // Now that the device is ready, we can handle the stored launchNotification and remove it.
+    if (launchNotification) {
+        [[[UIApplication sharedApplication] delegate] performSelector:@selector(handleRemoteNotification:userInfo:) withObject:[UIApplication sharedApplication] withObject:launchNotification];
+        launchNotification = nil;
+    }
+
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
 
 - (void)initialize: (CDVInvokedUrlCommand*)command
 {
     [self.commandDelegate runInBackground:^{
         CDVPluginResult* pluginResult = nil;
-        
+
         NSString *appId = [command.arguments objectAtIndex:0];
         NSString *clientKey = [command.arguments objectAtIndex:1];
+        [[NSUserDefaults standardUserDefaults] setObject:appId forKey:PPAppId];
+        [[NSUserDefaults standardUserDefaults] setObject:clientKey forKey:PPClientKey];
+
         [Parse setApplicationId:appId clientKey:clientKey];
-        
+
         // Register for notifications
         if ([[UIApplication sharedApplication] respondsToSelector:@selector(registerUserNotificationSettings:)]) {
             UIUserNotificationSettings *settings = [UIUserNotificationSettings
@@ -96,38 +117,6 @@ static NSString * const USER_PROPERTY = @"user";
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)setUserWithToken: (CDVInvokedUrlCommand *)command
-{
-    NSString* sessionToken = [command.arguments objectAtIndex:0];
-    
-    [PFUser becomeInBackground:sessionToken block:^(PFUser *user, NSError *error) {
-        CDVPluginResult* pluginResult = nil;
-        
-        if (error == nil) {
-            PFInstallation* installation = [PFInstallation currentInstallation];
-            installation[USER_PROPERTY] = user;
-            [installation saveInBackground];
-            
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        } else {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
-        }
-        
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }];
-}
-
-- (void)unsetUser: (CDVInvokedUrlCommand *)command
-{
-    CDVPluginResult* pluginResult = nil;
-    PFInstallation* installation = [PFInstallation currentInstallation];
-    [installation removeObjectForKey:USER_PROPERTY];
-    [installation saveInBackground];
-    
-    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];   
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
 @end
 
 @implementation AppDelegate (CDVParsePlugin)
@@ -150,7 +139,9 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 + (void)load
 {
     MethodSwizzle([self class], @selector(application:didRegisterForRemoteNotificationsWithDeviceToken:));
-    MethodSwizzle([self class], @selector(application:didReceiveRemoteNotification:));
+    MethodSwizzle([self class], @selector(application:didReceiveRemoteNotification:fetchCompletionHandler:));
+    MethodSwizzle([self class], @selector(application:didFinishLaunchingWithOptions:));
+    MethodSwizzle([self class], @selector(applicationDidBecomeActive:));
 }
 
 - (void)noop_application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)newDeviceToken
@@ -167,15 +158,82 @@ void MethodSwizzle(Class c, SEL originalSelector) {
     [currentInstallation saveInBackground];
 }
 
-- (void)noop_application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+- (NSString *)getJson:(NSDictionary *)data {
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:data
+                                                       options:(NSJSONWritingOptions)NSJSONWritingPrettyPrinted
+                                                         error:&error];
+    if (!jsonData) {
+        NSLog(@"getJson error: %@", error.localizedDescription);
+        return @"{}";
+    } else {
+        return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    }
+}
+
+- (void)noop_application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))handler
 {
 }
 
-- (void)swizzled_application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+- (void)swizzled_application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))handler
 {
     // Call existing method
-    [self swizzled_application:application didReceiveRemoteNotification:userInfo];
-    [PFPush handlePush:userInfo];
+    [self swizzled_application:application didReceiveRemoteNotification:userInfo fetchCompletionHandler:handler];
+
+    [self handleRemoteNotification:application userInfo:userInfo];
+
+    handler(UIBackgroundFetchResultNoData);
+}
+
+- (BOOL)noop_application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    return YES;
+}
+
+- (BOOL)swizzled_application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+
+    // Call existing method
+    [self swizzled_application:application didFinishLaunchingWithOptions:launchOptions];
+
+    NSString *appId = [[NSUserDefaults standardUserDefaults] stringForKey:PPAppId];
+    NSString *clientKey = [[NSUserDefaults standardUserDefaults] stringForKey:PPClientKey];
+
+    if (appId && clientKey) {
+        [Parse setApplicationId:appId clientKey:clientKey];
+    }
+
+    NSDictionary *notification = [launchOptions objectForKey: UIApplicationLaunchOptionsRemoteNotificationKey];
+
+    if (notification) {
+        // If the app is inactive, store the notification so that we can invoke the web app when it's ready
+        if (application.applicationState == UIApplicationStateInactive) {
+            launchNotification = notification;
+        } else {
+            [self handleRemoteNotification:application userInfo:notification];
+        }
+    }
+
+    return YES;
+}
+
+- (void)noop_applicationDidBecomeActive:(UIApplication *)application {
+}
+
+- (void)swizzled_applicationDidBecomeActive:(UIApplication *)application {
+    // Call existing method
+    [self swizzled_applicationDidBecomeActive:application];
+    // Reset the badge on app open
+    application.applicationIconBadgeNumber = 0;
+}
+
+- (void)handleRemoteNotification:(UIApplication *)application userInfo:(NSDictionary *)userInfo {
+    if (ecb) {
+        NSString *jsString = [NSString stringWithFormat:@"%@(%@);", ecb, [self getJson:userInfo]];
+
+        if ([self.viewController.webView respondsToSelector:@selector(stringByEvaluatingJavaScriptFromString:)]) {
+            // perform the selector on the main thread to bypass known iOS issue: http://goo.gl/0E1iAj
+            [self.viewController.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject:jsString waitUntilDone:NO];
+        }
+    }
 }
 
 @end

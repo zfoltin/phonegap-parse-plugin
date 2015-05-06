@@ -9,10 +9,9 @@
 - (void)getSubscriptions: (CDVInvokedUrlCommand *)command;
 - (void)subscribe: (CDVInvokedUrlCommand *)command;
 - (void)unsubscribe: (CDVInvokedUrlCommand *)command;
-- (void)setUserWithToken: (CDVInvokedUrlCommand *)command;
-- (void)unsetUser: (CDVInvokedUrlCommand *)command;
 
 @end
 
 @interface AppDelegate (CDVParsePlugin)
+- (void)handleRemoteNotification:(UIApplication *)application userInfo:(NSDictionary *)userInfo;
 @end

@@ -26,7 +26,7 @@ Initial Setup
 
 To receive notifications on Android when the app is closed (not running in foreground nor background), follow the instructions in plugin.xml.
 
-A parsePlugin variable is defined globally. For example, using Angularjs, we can access it like this: $window.parsePlugin.
+A parsePlugin variable is defined globally (e.g. $window.parsePlugin).
 
 Once the device is ready (see: http://docs.phonegap.com/en/4.0.0/cordova_events_events.md.html#deviceready), call ```parsePlugin.initialize()```. This will register the device with Parse, you should see this reflected in your Parse control panel. After this runs you probably want to save the installationID somewhere, and perhaps subscribe the user to a few channels. Here is a contrived example.
 
@@ -61,25 +61,37 @@ parsePlugin.initialize(appId, clientKey, function() {
 
 ```
 
-Alternatively, if we have the session token, we can store the user in the Installation table and send notifications with queries instead of channels. As a side-effect, setUserWithToken() logs the user in with Parse's native libraries.
+Alternatively, we can store the user in the installation table and use queries to push notifications.
 
 ```
 // on sign in, add the user pointer to the Installation
 parsePlugin.initialize(appId, clientKey, function() {
 
-  parsePlugin.setUserWithToken(sessionToken, null, function(error) {
-    console.error('Error setting user with token. ' + error);
+  parsePlugin.getInstallationObjectId( function(id) {
+    // Success! You can now use Parse REST API to modify the Installation
+    // see: https://parse.com/docs/rest/guide#objects for more info
+    console.log("installation object id: " + id)
+  }, function(error) {
+    console.error('Error getting installation object id. ' + error);
   });
 	
 }, function(e) {
 	alert('Error initializing.');
 });
 
-// ...
+```
 
-// on sign out, remove the user from the Installation
-parsePlugin.unsetUser(null, function(error) {
-  console.error('Error removing the user from the Installation table. ' + error);
+To receive notification callbacks, on device ready: 
+
+
+```
+parsePlugin.registerCallback('onNotification', function() {
+  // TODO: Move this callback handler in a Service and route the app to the uri
+  window.onNotification = function(pnObj) {
+    alert('We received this push notification: ' + JSON.stringify(pnObj));
+  };
+}, function(error) {
+  console.error(error);
 });
 
 ```
