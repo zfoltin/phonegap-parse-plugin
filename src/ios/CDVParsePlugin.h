@@ -13,5 +13,5 @@
 @end
 
 @interface AppDelegate (CDVParsePlugin)
-- (void)handleRemoteNotification:(UIApplication *)application userInfo:(NSDictionary *)userInfo;
+- (void)handleRemoteNotification:(UIApplication *)application payload:(NSDictionary *)payload;
 @end

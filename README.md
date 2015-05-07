@@ -88,10 +88,14 @@ To receive notification callbacks, on device ready:
 
 ```
 parsePlugin.registerCallback('onNotification', function() {
-  // TODO: Move this callback handler in a Service and route the app to the uri
+
   window.onNotification = function(pnObj) {
     alert('We received this push notification: ' + JSON.stringify(pnObj));
+    if (pnObj.receivedInForeground === false) {
+    	// TODO: route the user to the uri in pnObj
+    }
   };
+
 }, function(error) {
   console.error(error);
 });

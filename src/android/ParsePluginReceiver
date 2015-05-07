@@ -16,7 +16,8 @@ import org.json.JSONException;
 
 public class ParsePluginReceiver extends ParsePushBroadcastReceiver
 {
-    public static final String LOGTAG = "ParsePluginReceiver";
+    private static final String TAG = "ParsePluginReceiver";
+    private static final String RECEIVED_IN_FOREGROUND = "receivedInForeground";
 
     @Override
     protected void onPushReceive(Context context, Intent intent) {
@@ -37,6 +38,7 @@ public class ParsePluginReceiver extends ParsePushBroadcastReceiver
 
         if (pushData != null) {
             if (ParsePlugin.isInForeground()) {
+                ParseAnalytics.trackAppOpened(intent);
                 ParsePlugin.javascriptEventCallback(pushData);
             } else {
                 super.onPushOpen(context, intent);
@@ -49,8 +51,9 @@ public class ParsePluginReceiver extends ParsePushBroadcastReceiver
         JSONObject pushData = null;
         try {
             pushData = new JSONObject(intent.getStringExtra("com.parse.Data"));
+            pushData.put(RECEIVED_IN_FOREGROUND, ParsePlugin.isInForeground());
         } catch (JSONException e) {
-            Log.e(LOGTAG, "JSONException while parsing push data:", e);
+            Log.e(TAG, "JSONException while parsing push data:", e);
         } finally{
             return pushData;
         }
