@@ -232,6 +232,9 @@ void MethodSwizzle(Class c, SEL originalSelector) {
     // Call existing method
     [self swizzled_applicationDidBecomeActive:application];
     // Reset the badge on app open
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    currentInstallation.badge = 0;
+    [currentInstallation saveEventually];
     application.applicationIconBadgeNumber = 0;
 }
 
