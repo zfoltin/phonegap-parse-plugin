@@ -218,6 +218,12 @@ void MethodSwizzle(Class c, SEL originalSelector) {
         }
     }
 
+    // Reset the badge on app open
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    currentInstallation.badge = 0;
+    [currentInstallation saveEventually];
+    application.applicationIconBadgeNumber = 0;
+
     return YES;
 }
 
@@ -231,11 +237,6 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 - (void)swizzled_applicationDidBecomeActive:(UIApplication *)application {
     // Call existing method
     [self swizzled_applicationDidBecomeActive:application];
-    // Reset the badge on app open
-    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-    currentInstallation.badge = 0;
-    [currentInstallation saveEventually];
-    application.applicationIconBadgeNumber = 0;
 }
 
 - (void)handleRemoteNotification:(UIApplication *)application payload:(NSMutableDictionary *)payload {
