@@ -13,11 +13,23 @@ static NSString * const PPReceivedInForeground = @"receivedInForeground";
 @implementation CDVParsePlugin
 
 - (void)resetBadge:(CDVInvokedUrlCommand *)command {
+    NSLog(@"ParsePlugin.resetBadge");
     CDVPluginResult* pluginResult = nil;
     PFInstallation *currentInstallation = [PFInstallation currentInstallation];
     currentInstallation.badge = 0;
     // [currentInstallation saveEventually];
     [currentInstallation saveInBackground];
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+}
+
+- (void)trackEvent:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult* pluginResult = nil;
+    NSString *eventName = [command.arguments objectAtIndex:0];
+    NSDictionary *dimensions = [command.arguments objectAtIndex:1];
+    NSLog(@"ParsePlugin.trackEvent %@ %@", eventName, dimensions);
+    [PFAnalytics trackEvent:eventName dimensions:dimensions];
     pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 

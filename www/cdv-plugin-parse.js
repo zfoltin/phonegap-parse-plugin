@@ -78,6 +78,16 @@ var parsePlugin = {
             'resetBadge',
             []
         );
+    },
+
+    trackEvent: function(name, dimensions, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            'ParsePlugin',
+            'trackEvent',
+            [ name, dimensions ]
+        );
     }
 };
 module.exports = parsePlugin;
