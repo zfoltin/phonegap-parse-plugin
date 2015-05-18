@@ -141,6 +141,12 @@ Usage
   }, function(e) {
     alert('error');
   });
+
+	parsePlugin.trackEvent(function(name, dimensions) {
+    alert('OK');
+  }, function(e) {
+    alert('error');
+  });
 </script>
 ```
 
