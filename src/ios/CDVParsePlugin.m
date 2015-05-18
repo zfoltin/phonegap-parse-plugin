@@ -60,7 +60,6 @@ static NSString * const PPReceivedInForeground = @"receivedInForeground";
         [[NSUserDefaults standardUserDefaults] setObject:appId forKey:PPAppId];
         [[NSUserDefaults standardUserDefaults] setObject:clientKey forKey:PPClientKey];
 
-        [ParseCrashReporting enable];
         [Parse setApplicationId:appId clientKey:clientKey];
 
         // Register for notifications
