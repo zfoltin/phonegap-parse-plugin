@@ -60,6 +60,7 @@
 
         <source-file src="src/android/parse/Parse-1.9.0.jar" target-dir="libs" framework="true" />
         <source-file src="src/android/ParsePlugin.java" target-dir="src/org/apache/cordova/core" />
+        <source-file src="src/android/ParsePluginReceiver.java" target-dir="src/org/apache/cordova/core" />
 
         <source-file src="src/android/parseplugin.xml" target-dir="res/values" />
         <config-file target="res/values/parseplugin.xml" parent="/*">
