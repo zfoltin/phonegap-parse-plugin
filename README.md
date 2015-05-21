@@ -14,7 +14,7 @@ This plugin exposes native API push services to JS:
 
 As well as other utility methods:
 * registerCallback: allows us to get the notification back in javascript
-* resetBadge: resets the badge to 0 (iOS only) --this can also be accomplished using the <a href="https://parse.com/docs/rest/guide#objects-updating-objects">Parse REST API</a>
+* resetBadge: resets the badge to 0 (iOS only) --this can also be accomplished by setting the badge to 0 in the _Installation table using the <a href="https://parse.com/docs/rest/guide#objects-updating-objects">Parse REST API</a>
 
 Installation
 ------------
