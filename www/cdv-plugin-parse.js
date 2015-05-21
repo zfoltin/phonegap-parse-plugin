@@ -70,6 +70,7 @@ var parsePlugin = {
         );
     },
 
+    // iOS only
     resetBadge: function(successCallback, errorCallback) {
         cordova.exec(
             successCallback,
@@ -80,6 +81,7 @@ var parsePlugin = {
         );
     },
 
+    // iOS only
     trackEvent: function(name, dimensions, successCallback, errorCallback) {
         cordova.exec(
             successCallback,
