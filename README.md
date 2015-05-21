@@ -36,12 +36,12 @@ Once the device is ready (see: http://docs.phonegap.com/en/4.0.0/cordova_events_
 parsePlugin.initialize(appId, clientKey, function() {
 
 	parsePlugin.subscribe('SampleChannel', function() {
-		
+
 		parsePlugin.getInstallationId(function(id) {
-		
+
 			/**
 			 * Now you can construct an object and save it to your own services, or Parse, and correlate users to parse installations
-			 * 
+			 *
 			 var install_data = {
 			  	installation_id: id,
 			  	channels: ['SampleChannel']
@@ -56,7 +56,7 @@ parsePlugin.initialize(appId, clientKey, function() {
 	}, function(e) {
 		alert('error');
 	});
-	
+
 }, function(e) {
 	alert('error');
 });
@@ -76,14 +76,14 @@ parsePlugin.initialize(appId, clientKey, function() {
   }, function(error) {
     console.error('Error getting installation object id. ' + error);
   });
-	
+
 }, function(e) {
 	alert('Error initializing.');
 });
 
 ```
 
-To receive notification callbacks, on device ready: 
+To receive notification callbacks, on device ready:
 
 
 ```
@@ -111,30 +111,42 @@ Usage
 	}, function(e) {
 		alert('error');
 	});
-  
+
 	parsePlugin.getInstallationId(function(id) {
 		alert(id);
 	}, function(e) {
 		alert('error');
 	});
-	
+
 	parsePlugin.getSubscriptions(function(subscriptions) {
 		alert(subscriptions);
 	}, function(e) {
 		alert('error');
 	});
-	
+
 	parsePlugin.subscribe('SampleChannel', function() {
 		alert('OK');
 	}, function(e) {
 		alert('error');
 	});
-	
+
 	parsePlugin.unsubscribe('SampleChannel', function(msg) {
 		alert('OK');
 	}, function(e) {
 		alert('error');
 	});
+
+	parsePlugin.resetBadge(function() {
+    alert('OK');
+  }, function(e) {
+    alert('error');
+  });
+
+	parsePlugin.trackEvent(function(name, dimensions) {
+    alert('OK');
+  }, function(e) {
+    alert('error');
+  });
 </script>
 ```
 

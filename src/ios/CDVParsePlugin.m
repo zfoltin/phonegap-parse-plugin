@@ -12,6 +12,29 @@ static NSString * const PPReceivedInForeground = @"receivedInForeground";
 
 @implementation CDVParsePlugin
 
+- (void)resetBadge:(CDVInvokedUrlCommand *)command {
+    NSLog(@"ParsePlugin.resetBadge");
+    CDVPluginResult* pluginResult = nil;
+    PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+    currentInstallation.badge = 0;
+    // [currentInstallation saveEventually];
+    [currentInstallation saveInBackground];
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+}
+
+- (void)trackEvent:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult* pluginResult = nil;
+    NSString *eventName = [command.arguments objectAtIndex:0];
+    NSDictionary *dimensions = [command.arguments objectAtIndex:1];
+    NSLog(@"ParsePlugin.trackEvent %@ %@", eventName, dimensions);
+    [PFAnalytics trackEvent:eventName dimensions:dimensions];
+    pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+}
+
 - (void)registerCallback: (CDVInvokedUrlCommand*)command
 {
     ecb = [command.arguments objectAtIndex:0];
@@ -180,7 +203,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
 {
     // Call existing method
     [self swizzled_application:application didReceiveRemoteNotification:userInfo fetchCompletionHandler:handler];
-    
+
     NSMutableDictionary *notification = [NSMutableDictionary dictionaryWithDictionary:userInfo];
     [notification setObject:[NSNumber numberWithBool:[self isInForeground:application]] forKey:PPReceivedInForeground];
     [self handleRemoteNotification:application payload:notification];
@@ -205,7 +228,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
     }
 
     NSDictionary *launchPayload = [launchOptions objectForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
-    
+
     if (launchPayload) {
         NSMutableDictionary *notification = [NSMutableDictionary dictionaryWithDictionary:launchPayload];
         [notification setObject:[NSNumber numberWithBool:[self isInForeground:application]] forKey:PPReceivedInForeground];
@@ -241,7 +264,7 @@ void MethodSwizzle(Class c, SEL originalSelector) {
     if (![[payload objectForKey:PPReceivedInForeground] boolValue]) {
         [PFAnalytics trackAppOpenedWithRemoteNotificationPayload:payload];
     }
-    
+
     // send the callback to the webview
     if (ecb) {
         NSString *jsString = [NSString stringWithFormat:@"%@(%@);", ecb, [self getJson:payload]];

@@ -68,6 +68,26 @@ var parsePlugin = {
             'unsubscribe',
             [ channel ]
         );
+    },
+
+    resetBadge: function(successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            'ParsePlugin',
+            'resetBadge',
+            []
+        );
+    },
+
+    trackEvent: function(name, dimensions, successCallback, errorCallback) {
+        cordova.exec(
+            successCallback,
+            errorCallback,
+            'ParsePlugin',
+            'trackEvent',
+            [ name, dimensions ]
+        );
     }
 };
 module.exports = parsePlugin;
