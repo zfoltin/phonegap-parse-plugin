@@ -17,6 +17,7 @@ import org.json.JSONObject;
 import com.parse.Parse;
 import com.parse.ParseInstallation;
 import com.parse.PushService;
+import com.parse.ParsePush;
 
 import android.util.Log;
 
@@ -144,7 +145,7 @@ public class ParsePlugin extends CordovaPlugin {
     private void subscribe(final String channel, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                PushService.subscribe(cordova.getActivity(), channel, cordova.getActivity().getClass());
+                ParsePush.subscribeInBackground(channel);
                 callbackContext.success();
             }
         });
@@ -153,7 +154,7 @@ public class ParsePlugin extends CordovaPlugin {
     private void unsubscribe(final String channel, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             public void run() {
-                PushService.unsubscribe(cordova.getActivity(), channel);
+                ParsePush.unsubscribeInBackground(channel);
                 callbackContext.success();
             }
         });
