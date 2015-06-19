@@ -29,8 +29,6 @@ cordova plugin add https://github.com/avivais/phonegap-parse-plugin --variable A
 Initial Setup
 -------------
 
-To receive notifications on Android when the app is closed (not running in foreground nor background), follow the instructions in plugin.xml.
-
 A parsePlugin variable is defined globally (e.g. $window.parsePlugin).
 
 Once the device is ready (see: http://docs.phonegap.com/en/4.0.0/cordova_events_events.md.html#deviceready), call ```parsePlugin.initialize()```. This will register the device with Parse, you should see this reflected in your Parse control panel. After this runs you probably want to save the installationID somewhere, and perhaps subscribe the user to a few channels. Here is a contrived example.
