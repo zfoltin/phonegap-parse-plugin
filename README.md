@@ -188,4 +188,6 @@ And add your application name to `AndroidManifest.xml`:
 
 Compatibility
 -------------
-Phonegap/Cordova > 3.0
+- Phonegap/Cordova > 3.0
+- iOS > 7 (on versions lower than 7, you will not receive push notification callbacks when the app is running in foreground)
+- Android > 2.3
